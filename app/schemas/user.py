@@ -2,10 +2,12 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
+
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
     referral_code: Optional[str] = None
+
 
 class UserOut(BaseModel):
     id: int
@@ -17,6 +19,7 @@ class UserOut(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class LeaderboardEntry(BaseModel):
     id: int

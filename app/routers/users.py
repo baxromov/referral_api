@@ -4,7 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.schemas.user import UserCreate, UserOut, LeaderboardEntry
-from app.services.user_service import create_user, get_user, get_referrals, get_leaderboard
+from app.services.user_service import (
+    create_user,
+    get_user,
+    get_referrals,
+    get_leaderboard,
+)
 from app.database import get_db
 
 router = APIRouter(prefix="", tags=["users"])

@@ -14,7 +14,7 @@ from app.schemas.user import UserCreate, UserOut, LeaderboardEntry
 def generate_referral_code(db: Session) -> str:
     while True:
         length = random.randint(6, 8)
-        code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
+        code = "".join(random.choices(string.ascii_uppercase + string.digits, k=length))
         if not db.query(User).filter(User.referral_code == code).first():
             return code
 
@@ -23,7 +23,9 @@ def get_depth(db: Session, user: User) -> int:
     depth = 0
     current = user
     while current.referred_by:
-        parent = db.query(User).filter(User.referral_code == current.referred_by).first()
+        parent = (
+            db.query(User).filter(User.referral_code == current.referred_by).first()
+        )
         if not parent:
             raise HTTPException(status_code=400, detail="Invalid referral chain")
         current = parent
@@ -43,7 +45,9 @@ def create_user(db: Session, user_create: UserCreate) -> UserOut:
             raise HTTPException(status_code=400, detail="Invalid referral code")
         depth = get_depth(db, referrer)
         if depth >= 2:
-            raise HTTPException(status_code=400, detail="Maximum referral depth of 3 levels exceeded")
+            raise HTTPException(
+                status_code=400, detail="Maximum referral depth of 3 levels exceeded"
+            )
 
     referral_code = generate_referral_code(db)
     new_user = User(
@@ -51,7 +55,7 @@ def create_user(db: Session, user_create: UserCreate) -> UserOut:
         email=user_create.email,
         referral_code=referral_code,
         referred_by=referred_by,
-        created_at=datetime.utcnow()
+        created_at=datetime.utcnow(),
     )
     db.add(new_user)
     db.commit()
@@ -74,11 +78,7 @@ def get_referrals(db: Session, user_id: int) -> List[UserOut]:
 def get_leaderboard(db: Session) -> List[LeaderboardEntry]:
     invited = aliased(User)
     results = (
-        db.query(
-            User.id,
-            User.name,
-            func.count(invited.id).label("referral_count")
-        )
+        db.query(User.id, User.name, func.count(invited.id).label("referral_count"))
         .outerjoin(invited, User.referral_code == invited.referred_by)
         .group_by(User.id, User.name)
         .order_by(func.count(invited.id).desc())
